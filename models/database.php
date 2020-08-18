@@ -8,7 +8,7 @@
 		private $database;
 		public $conn;
 
-		// fungsi yang diload pertama kali oleh kelas
+		// fungsi yang otomatis diload pertama kali oleh kelas
 		function __construct($host, $user, $pass, $database) {
 			$this->host = $host;
 			$this->user = $user;

@@ -1,15 +1,19 @@
 <?php
+	// mencegah error saat redirect dengan fungsi header(location)
+	ob_start();
 	// include sekali controllers/koneksi.php dan models/database.php
 	require_once('controllers/koneksi.php');
 	require_once('models/database.php');
 
 	$connection = new Database($host, $user, $pass, $database);
+
+	@session_start();
+	if(@$_SESSION['admin'] || @$_SESSION['operator']) {
 ?>
 <!doctype html>
 <html lang="en">
-
 <head>
-	<title>Dashboard | HayuTravel</title>
+	<title>Dashboard | 10118071_Akademik</title>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
@@ -27,15 +31,16 @@
 	<!-- ICONS -->
 	<link rel="apple-touch-icon" sizes="76x76" href="assets/img/apple-icon.png">
 	<link rel="icon" type="image/png" sizes="96x96" href="assets/img/favicon.png">
+	<!-- dataTables -->
+	<link rel="stylesheet" href="assets/dataTables/datatables.min.css">
 </head>
-
 <body>
 	<!-- WRAPPER -->
 	<div id="wrapper">
 		<!-- NAVBAR -->
 		<nav class="navbar navbar-default navbar-fixed-top">
 			<div class="brand">
-				<a href="?page=dashboard"><img src="assets/img/logo-dark.png" alt="Klorofil Logo" class="img-responsive logo"></a>
+				<a href="?page=dashboard"><img src="assets/img/logo-10118071_Akademik.png" alt="Klorofil Logo" class="img-responsive logo"></a>
 			</div>
 			<div class="container-fluid">
 				<div class="navbar-btn">
@@ -64,12 +69,25 @@
 							</ul>
 						</li>
 						<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><img src="assets/img/user.png" class="img-circle" alt="Avatar"> <span>Admin</span> <i class="icon-submenu lnr lnr-chevron-down"></i></a>
+							<!-- menampilkan user pelogin sesuai role -->
+							<?php
+								if(@$_SESSION['admin']) {
+									$user_terlogin = @$_SESSION['admin'];
+								} else if(@$_SESSION['operator']) {
+									$user_terlogin = @$_SESSION['operator'];
+								}
+
+								// koneksi database
+								$koneksi = mysqli_connect('localhost','root','','10118071_Akademik');
+								$sql_user = mysqli_query($koneksi, "SELECT * FROM tb_users WHERE id_users = '$user_terlogin'") or die (mysqli_error());
+								$data_user = mysqli_fetch_array($sql_user);
+							?>
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><img src="assets/img/david.png" class="img-circle" alt="Avatar"> <span><?php echo $data_user['nama_users'] ?></span> <i class="icon-submenu lnr lnr-chevron-down"></i></a>
 							<ul class="dropdown-menu">
 								<li><a href="#"><i class="lnr lnr-user"></i> <span>My Profile</span></a></li>
 								<li><a href="#"><i class="lnr lnr-envelope"></i> <span>Message</span></a></li>
 								<li><a href="#"><i class="lnr lnr-cog"></i> <span>Settings</span></a></li>
-								<li><a href="#"><i class="lnr lnr-exit"></i> <span>Logout</span></a></li>
+								<li><a href="logout.php"><i class="lnr lnr-exit"></i> <span>Logout</span></a></li>
 							</ul>
 						</li>
 					</ul>
@@ -82,39 +100,55 @@
 			<div class="sidebar-scroll">
 				<nav>
 					<ul class="nav">
-						<li><a href="?page=dashboard" class="active"><i class="lnr lnr-home"></i> <span>Dashboard</span></a></li>
-						<li><a href="?page=pelanggan" class=""><i class="lnr lnr-users"></i> <span>Pelanggan</span></a></li>
-						<li><a href="?page=kendaraan" class=""><i class="lnr lnr-car"></i> <span>Kendaraan</span></a></li>
-						<li><a href="?page=transaksi" class=""><i class="lnr lnr-map"></i> <span>Transaksi</span></a></li>
-						<li>
+						<li><a href="?page=dashboard"><i class="lnr lnr-home"></i> <span>Dashboard</span></a></li>
+						<?php
+						if(@$_SESSION['admin']) { ?>
+						<li><a href="?page=users" class=""><i class="lnr lnr-users"></i> <span>Users</span></a></li>
+						<?php 
+						} ?>
+						<li><a href="?page=mahasiswa" class=""><i class="lnr lnr-users"></i> <span>Mahasiswa</span></a></li>
+						<li><a href="?page=dosen" class=""><i class="lnr lnr-users"></i> <span>Dosen</span></a></li>
+						<li><a href="?page=jurusan" class=""><i class="lnr lnr-layers"></i> <span>Jurusan</span></a></li>
+						<li><a href="?page=matakuliah" class=""><i class="lnr lnr-book"></i> <span>Mata Kuliah</span></a></li>
+						<li><a href="?page=perkuliahan" class=""><i class="lnr lnr-calendar-full"></i> <span>Perkuliahan</span></a></li>
+						<!-- <li>
 							<a href="#subPages" data-toggle="collapse" class="collapsed"><i class="lnr lnr-file-empty"></i> <span>Laporan</span> <i class="icon-submenu lnr lnr-chevron-left"></i></a>
 							<div id="subPages" class="collapse ">
 								<ul class="nav">
-									<li><a href="page-profile.html" class="">Profile</a></li>
-									<li><a href="page-login.html" class="">Login</a></li>
-									<li><a href="page-lockscreen.html" class="">Lockscreen</a></li>
+									<li><a href="page-profile.html" class="">User</a></li>
+									<li><a href="page-login.html" class="">Mahasiswa</a></li>
+									<li><a href="page-login.html" class="">Dosen</a></li>
+									<li><a href="page-login.html" class="">Jurusan</a></li>
+									<li><a href="page-login.html" class="">Mata Kuliah</a></li>
+									<li><a href="page-login.html" class="">Perkuliahan</a></li>
 								</ul>
 							</div>
-						</li>
+						</li> -->
 					</ul>
 				</nav>
 			</div>
 		</div>
 		<!-- END LEFT SIDEBAR -->
 
-		<!-- ISI WEBSITE DINAMIS -->
+		<!-- isi web dinamis -->
 		<?php
 			if(@$_GET['page'] == 'dashboard' || @$_GET['page'] == '') {
 				include "views/dashboard.php";
-			} else if(@$_GET['page'] == 'pelanggan') {
-				include "views/pelanggan.php";
-			}  else if(@$_GET['page'] == 'kendaraan') {
-				include "views/kendaraan.php";
-			}  else if(@$_GET['page'] == 'transaksi') {
-				include "views/transaksi.php";
+			} else if(@$_GET['page'] == 'users') {
+				include "views/users.php";
+			}  else if(@$_GET['page'] == 'mahasiswa') {
+				include "views/mahasiswa.php";
+			}  else if(@$_GET['page'] == 'dosen') {
+				include "views/dosen.php";
+			}  else if(@$_GET['page'] == 'jurusan') {
+				include "views/jurusan.php";
+			}  else if(@$_GET['page'] == 'matakuliah') {
+				include "views/matakuliah.php";
+			}  else if(@$_GET['page'] == 'perkuliahan') {
+				include "views/perkuliahan.php";
 			}
 		?>
-		<!-- END ISI WEBSITE DINAMIS -->
+		<!-- isi web dinamis -->
 
 		<div class="clearfix"></div>
 		<footer>
@@ -132,6 +166,17 @@
 	<script src="assets/vendor/jquery.easy-pie-chart/jquery.easypiechart.min.js"></script>
 	<script src="assets/vendor/chartist/js/chartist.min.js"></script>
 	<script src="assets/scripts/klorofil-common.js"></script>	
+	<!-- dataTables -->
+	<script src="assets/dataTables/datatables.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$('#datatables').DataTable();
+		});
+	</script>
 </body>
-
 </html>
+<?php
+	} else {
+		header("location: login.php");
+	}
+?>
